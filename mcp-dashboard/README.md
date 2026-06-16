@@ -32,24 +32,9 @@ LLM に毎回 HTML を生成させる方式（Artifacts 等）との違いは「
 
 このパッケージは GitHub リポジトリ [`leomaro7/mcp`](https://github.com/leomaro7/mcp) の **`mcp-dashboard/` サブディレクトリ**にあります。MCP ホスト（Claude Desktop など）からは stdio で起動します。
 
-> npm/npx は Git の「サブディレクトリ」を直接は扱えません（pip/uv の `#subdirectory=` のような機能が無い）。そのため、Git から直接使うときはサブディレクトリをパッケージ化する [gitpkg](https://gitpkg.vercel.app) を介すか、npm に公開します。
+> npm/npx は Git の「サブディレクトリ」を直接は扱えません（pip/uv の `#subdirectory=` のような機能が無い）。そのため、Git から直接 `npx` したい場合は npm に公開するか、ローカルのソースを指して起動します。
 
-### A. Git から直接（npm 公開なし・gitpkg 経由）
-
-```json
-{
-  "mcpServers": {
-    "data-dashboard": {
-      "command": "npx",
-      "args": ["-y", "https://gitpkg.vercel.app/leomaro7/mcp/mcp-dashboard?main", "--stdio"]
-    }
-  }
-}
-```
-
-初回は install 時に `prepare` フックで UI とサーバーが自動ビルドされます（数十秒）。gitpkg は第三者サービスのため、常用には B を推奨。
-
-### B. npm に公開して使う（uvx と同じ感覚・推奨）
+### A. npm に公開して使う（uvx と同じ感覚・推奨）
 
 ```bash
 cd mcp-dashboard
@@ -70,7 +55,7 @@ npm publish --access public
 }
 ```
 
-### C. 手元のソースから（開発中）
+### B. 手元のソースから（開発中・公開なしで今すぐ動かす）
 
 `<クローン先>` は各自がリポジトリを置いたパスに置き換えてください（例: `~/dev/mcp/mcp-dashboard`）。
 
@@ -250,9 +235,9 @@ SERVERS='["http://localhost:3001/mcp"]' npx tsx serve.ts
 
 ## 動かし方 B: Claude Desktop など MCP ホストに登録して使う
 
-設定ファイル（macOS の Claude Desktop なら `~/Library/Application Support/Claude/claude_desktop_config.json`）に、冒頭の[使い方（npx で起動）](#使い方npx-で起動)の A / B / C いずれかの `mcpServers` 設定を貼り、ホストを再起動します。
+設定ファイル（macOS の Claude Desktop なら `~/Library/Application Support/Claude/claude_desktop_config.json`）に、冒頭の[使い方（npx で起動）](#使い方npx-で起動)の A / B いずれかの `mcpServers` 設定を貼り、ホストを再起動します。
 
-チャットで「都市別データをダッシュボードで見せて」のように頼むと `show-dataset` が呼ばれ、表＋棒グラフの UI が会話内に表示されます。手元のソースから動かす C の場合は、事前に一度 `npm run build` を実行してください（`dist/mcp-app.html` が必要なため）。
+チャットで「都市別データをダッシュボードで見せて」のように頼むと `show-dataset` が呼ばれ、表＋棒グラフの UI が会話内に表示されます。手元のソースから動かす B の場合は、事前に一度 `npm run build` を実行してください（`dist/mcp-app.html` が必要なため）。
 
 ---
 
