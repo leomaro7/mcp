@@ -1,0 +1,55 @@
+:root {
+  color-scheme: light dark;
+
+  /* Fallbacks for host style variables; the host may override these. */
+  --color-text-primary: light-dark(#1f2937, #f3f4f6);
+  --color-text-secondary: light-dark(#6b7280, #9ca3af);
+  --color-text-inverse: light-dark(#f3f4f6, #1f2937);
+  --color-background-primary: light-dark(#ffffff, #1a1a1a);
+  --color-background-secondary: light-dark(#f3f4f6, #262626);
+  --color-ring-primary: light-dark(#3b82f6, #60a5fa);
+  --color-border: light-dark(#e5e7eb, #374151);
+  --border-radius-md: 8px;
+  --border-width-regular: 1px;
+  --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+  --font-text-md-size: 1rem;
+  --font-text-md-line-height: 1.5;
+  --font-heading-xl-size: 1.5rem;
+  --font-heading-xl-line-height: 1.25;
+
+  --spacing-unit: var(--font-text-md-size);
+  --spacing-xs: calc(var(--spacing-unit) * 0.25);
+  --spacing-sm: calc(var(--spacing-unit) * 0.5);
+  --spacing-md: var(--spacing-unit);
+  --spacing-lg: calc(var(--spacing-unit) * 1.5);
+
+  --color-accent: #2563eb;
+  --color-text-on-accent: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-text-md-size);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--font-text-md-line-height);
+  color: var(--color-text-primary);
+  background: transparent;
+}
+
+h1 {
+  font-size: var(--font-heading-xl-size);
+  line-height: var(--font-heading-xl-line-height);
+  margin: 0;
+}
+
+b, strong {
+  font-weight: var(--font-weight-bold);
+}

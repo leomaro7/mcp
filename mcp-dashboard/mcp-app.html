@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Data Dashboard</title>
+</head>
+<body>
+  <main class="dash">
+    <header class="dash__head">
+      <h1 class="dash__title" id="title">データダッシュボード</h1>
+      <div class="stats" id="stats"></div>
+    </header>
+
+    <section class="controls">
+      <input type="search" id="search" class="controls__search" placeholder="ラベルで検索…" autocomplete="off">
+      <label class="controls__sort">
+        <span>並び順</span>
+        <select id="sort">
+          <option value="value-desc">値（大→小）</option>
+          <option value="value-asc">値（小→大）</option>
+          <option value="label-asc">ラベル（A→Z）</option>
+          <option value="label-desc">ラベル（Z→A）</option>
+        </select>
+      </label>
+    </section>
+
+    <div class="chips" id="chips"></div>
+
+    <section class="chart" id="chart" aria-label="棒グラフ"></section>
+
+    <p class="empty" id="empty" hidden>該当するデータがありません。</p>
+
+    <section class="save">
+      <input type="text" id="save-path" class="save__path"
+             placeholder="保存先（例: cities もしくは /tmp/cities.json）" value="cities">
+      <select id="save-format" class="save__format" aria-label="保存形式">
+        <option value="json">JSON</option>
+        <option value="html">HTML</option>
+        <option value="csv">CSV</option>
+      </select>
+      <button type="button" id="save-btn" class="save__btn">保存</button>
+      <span class="save__status" id="save-status" aria-live="polite"></span>
+    </section>
+  </main>
+  <script type="module" src="/src/mcp-app.ts"></script>
+</body>
+</html>
