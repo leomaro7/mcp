@@ -72,17 +72,34 @@ npm publish --access public
 
 ### C. 手元のソースから（開発中）
 
+`<クローン先>` は各自がリポジトリを置いたパスに置き換えてください（例: `~/dev/mcp/mcp-dashboard`）。
+
 ```json
 {
   "mcpServers": {
     "data-dashboard": {
       "command": "npx",
-      "args": ["tsx", "/Users/naata/mcp/mcp-dashboard/main.ts", "--stdio"]
+      "args": ["tsx", "<クローン先>/mcp-dashboard/main.ts", "--stdio"]
     }
   }
 }
 ```
 
+環境変数展開に対応するホスト（Claude Code の `.mcp.json` など）では `${HOME}` を使って書けます。
+
+```json
+{
+  "mcpServers": {
+    "data-dashboard": {
+      "command": "npx",
+      "args": ["tsx", "${HOME}/mcp/mcp-dashboard/main.ts", "--stdio"]
+    }
+  }
+}
+```
+
+> 注意: Claude Desktop の設定ファイルは一般に変数展開に対応しないため、その場合は `<クローン先>` を実際の絶対パスに書き換えてください。
+>
 > いずれの方法でも、画面付きで使うには MCP Apps の UI 描画に対応したホストが必要です。設定変更後はホストの再起動を忘れずに。
 
 ---
