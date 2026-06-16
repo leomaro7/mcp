@@ -1,7 +1,9 @@
+#!/usr/bin/env node
 /**
  * Entry point for running the MCP server.
  * HTTP:  tsx main.ts            (listens on PORT, default 3001, at /mcp)
  * stdio: tsx main.ts --stdio
+ * Published: npx -y <package> --stdio   (runs the compiled dist/main.js)
  */
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";

@@ -1,18 +1,35 @@
 {
-  "name": "mcp-dashboard",
+  "name": "@leomaro7/mcp-dashboard",
   "version": "1.0.0",
   "type": "module",
   "description": "Data visualization dashboard as an MCP App (sortable/filterable table + bar chart)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leomaro7/mcp.git",
+    "directory": "mcp-dashboard"
+  },
+  "bin": {
+    "mcp-dashboard": "dist/main.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "cross-env INPUT=mcp-app.html vite build",
+    "build": "npm run build:ui && npm run build:server",
+    "build:ui": "cross-env INPUT=mcp-app.html vite build",
+    "build:server": "tsc -p tsconfig.build.json",
     "watch": "cross-env INPUT=mcp-app.html vite build --watch",
     "serve": "tsx main.ts",
     "serve:stdio": "tsx main.ts --stdio",
-    "start": "cross-env NODE_ENV=development npm run build && npm run serve",
-    "start:stdio": "cross-env NODE_ENV=development npm run build 1>&2 && npm run serve:stdio",
-    "dev": "cross-env NODE_ENV=development concurrently \"npm run watch\" \"tsx --watch main.ts\""
+    "start": "cross-env NODE_ENV=development npm run build:ui && npm run serve",
+    "start:stdio": "cross-env NODE_ENV=development npm run build:ui 1>&2 && npm run serve:stdio",
+    "dev": "cross-env NODE_ENV=development concurrently \"npm run watch\" \"tsx --watch main.ts\"",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.7.4",
