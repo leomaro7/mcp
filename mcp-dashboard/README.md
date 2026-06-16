@@ -28,6 +28,65 @@ LLM に毎回 HTML を生成させる方式（Artifacts 等）との違いは「
 
 ---
 
+## 使い方（npx で起動）
+
+このパッケージは GitHub リポジトリ [`leomaro7/mcp`](https://github.com/leomaro7/mcp) の **`mcp-dashboard/` サブディレクトリ**にあります。MCP ホスト（Claude Desktop など）からは stdio で起動します。
+
+> npm/npx は Git の「サブディレクトリ」を直接は扱えません（pip/uv の `#subdirectory=` のような機能が無い）。そのため、Git から直接使うときはサブディレクトリをパッケージ化する [gitpkg](https://gitpkg.vercel.app) を介すか、npm に公開します。
+
+### A. Git から直接（npm 公開なし・gitpkg 経由）
+
+```json
+{
+  "mcpServers": {
+    "data-dashboard": {
+      "command": "npx",
+      "args": ["-y", "https://gitpkg.vercel.app/leomaro7/mcp/mcp-dashboard?main", "--stdio"]
+    }
+  }
+}
+```
+
+初回は install 時に `prepare` フックで UI とサーバーが自動ビルドされます（数十秒）。gitpkg は第三者サービスのため、常用には B を推奨。
+
+### B. npm に公開して使う（uvx と同じ感覚・推奨）
+
+```bash
+cd mcp-dashboard
+npm login                      # 初回のみ。スコープ @leomaro7 は npm アカウント名に合わせる
+npm publish --access public
+```
+
+公開後はパッケージ名だけで起動できます。
+
+```json
+{
+  "mcpServers": {
+    "data-dashboard": {
+      "command": "npx",
+      "args": ["-y", "@leomaro7/mcp-dashboard@latest", "--stdio"]
+    }
+  }
+}
+```
+
+### C. 手元のソースから（開発中）
+
+```json
+{
+  "mcpServers": {
+    "data-dashboard": {
+      "command": "npx",
+      "args": ["tsx", "/Users/naata/mcp/mcp-dashboard/main.ts", "--stdio"]
+    }
+  }
+}
+```
+
+> いずれの方法でも、画面付きで使うには MCP Apps の UI 描画に対応したホストが必要です。設定変更後はホストの再起動を忘れずに。
+
+---
+
 ## 機能
 
 - 値に比例して伸びる横棒グラフ（アニメーション付き）
@@ -106,7 +165,7 @@ LLM に毎回 HTML を生成させる方式（Artifacts 等）との違いは「
 ## セットアップ（初回のみ）
 
 ```bash
-cd /Users/naata/qiita/mcp-dashboard
+cd /Users/naata/mcp/mcp-dashboard
 npm install
 ```
 
@@ -137,7 +196,7 @@ MCP App は単体では画面が出ません。まず動きを見るなら、MCP
 **ターミナル 1 — このサーバー**
 
 ```bash
-cd /Users/naata/qiita/mcp-dashboard
+cd /Users/naata/mcp/mcp-dashboard
 npm run start          # http://localhost:3001/mcp
 ```
 
@@ -172,34 +231,11 @@ SERVERS='["http://localhost:3001/mcp"]' npx tsx serve.ts
 
 ---
 
-## 動かし方 B: Claude Desktop に登録して使う（本番）
+## 動かし方 B: Claude Desktop など MCP ホストに登録して使う
 
-Claude Desktop は stdio でローカルの MCP サーバーを起動できます。
+設定ファイル（macOS の Claude Desktop なら `~/Library/Application Support/Claude/claude_desktop_config.json`）に、冒頭の[使い方（npx で起動）](#使い方npx-で起動)の A / B / C いずれかの `mcpServers` 設定を貼り、ホストを再起動します。
 
-**1. 事前に一度ビルド**
-
-```bash
-cd /Users/naata/qiita/mcp-dashboard && npm run build
-```
-
-**2. 設定ファイルを編集**
-
-macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "data-dashboard": {
-      "command": "npx",
-      "args": ["tsx", "/Users/naata/qiita/mcp-dashboard/main.ts", "--stdio"]
-    }
-  }
-}
-```
-
-**3. Claude Desktop を再起動**
-
-チャットで「都市別データをダッシュボードで見せて」のように頼むと `show-dataset` が呼ばれ、表＋棒グラフの UI が会話内に表示されます。
+チャットで「都市別データをダッシュボードで見せて」のように頼むと `show-dataset` が呼ばれ、表＋棒グラフの UI が会話内に表示されます。手元のソースから動かす C の場合は、事前に一度 `npm run build` を実行してください（`dist/mcp-app.html` が必要なため）。
 
 ---
 
