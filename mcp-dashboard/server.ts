@@ -96,13 +96,45 @@ export function createServer(): McpServer {
   // server (here, writing a file to local disk).
   const SAVE_BASE = path.join(process.cwd(), "saved");
 
+  // Resolve a destination path: append the extension if missing, allow absolute
+  // paths as-is, and resolve relative paths under SAVE_BASE — rejecting any
+  // `../` that would escape it (the tool contract says relative paths stay
+  // "under ./saved"). Shared by all three save-* tools.
+  const resolveSavePath = (dest: string, ext: string): string => {
+    const withExt = dest.endsWith(ext) ? dest : `${dest}${ext}`;
+    if (path.isAbsolute(withExt)) return withExt;
+    const resolved = path.resolve(SAVE_BASE, withExt);
+    if (resolved !== SAVE_BASE && !resolved.startsWith(SAVE_BASE + path.sep)) {
+      throw new Error(`Relative path escapes the save directory: ${dest}`);
+    }
+    return resolved;
+  };
+
+  // Write a brand-new file, refusing to clobber anything that already exists.
+  // Absolute destinations are allowed, so the `wx` flag (exclusive create) is
+  // what prevents these tools from silently overwriting arbitrary files on
+  // disk (e.g. a shell rc or launch agent steered there via prompt injection).
+  // Shared by all three save-* tools.
+  const writeNewFile = async (savedPath: string, data: string): Promise<void> => {
+    await fs.mkdir(path.dirname(savedPath), { recursive: true });
+    try {
+      await fs.writeFile(savedPath, data, { encoding: "utf-8", flag: "wx" });
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code === "EEXIST") {
+        throw new Error(`File already exists, refusing to overwrite: ${savedPath}`);
+      }
+      throw e;
+    }
+  };
+
   server.registerTool(
     "save-dataset",
     {
       title: "Save Dataset to Local File",
       description:
         "Persist the current dataset as a JSON file on the local disk. " +
-        "`path` may be absolute, or relative (resolved under ./saved).",
+        "`path` may be absolute, or relative (resolved under ./saved). " +
+        "Existing files are never overwritten.",
       inputSchema: {
         path: z.string().describe("Destination path. Relative paths go under ./saved."),
         title: z.string(),
@@ -116,15 +148,10 @@ export function createServer(): McpServer {
       },
     },
     async ({ path: dest, title, unit, rows }): Promise<CallToolResult> => {
-      // Normalize the filename and resolve relative paths under SAVE_BASE.
-      const withExt = dest.endsWith(".json") ? dest : `${dest}.json`;
-      const savedPath = path.isAbsolute(withExt)
-        ? withExt
-        : path.join(SAVE_BASE, withExt);
+      const savedPath = resolveSavePath(dest, ".json");
 
       const json = JSON.stringify({ title, unit, rows }, null, 2);
-      await fs.mkdir(path.dirname(savedPath), { recursive: true });
-      await fs.writeFile(savedPath, json, "utf-8");
+      await writeNewFile(savedPath, json);
 
       const result = {
         savedPath,
@@ -148,7 +175,8 @@ export function createServer(): McpServer {
       title: "Save Dashboard as Static HTML",
       description:
         "Persist a self-contained HTML snapshot of the current dashboard view. " +
-        "`path` may be absolute, or relative (resolved under ./saved).",
+        "`path` may be absolute, or relative (resolved under ./saved). " +
+        "Existing files are never overwritten.",
       inputSchema: {
         path: z.string().describe("Destination path. Relative paths go under ./saved."),
         html: z.string().describe("The self-contained HTML document to write."),
@@ -160,13 +188,9 @@ export function createServer(): McpServer {
       },
     },
     async ({ path: dest, html }): Promise<CallToolResult> => {
-      const withExt = dest.endsWith(".html") ? dest : `${dest}.html`;
-      const savedPath = path.isAbsolute(withExt)
-        ? withExt
-        : path.join(SAVE_BASE, withExt);
+      const savedPath = resolveSavePath(dest, ".html");
 
-      await fs.mkdir(path.dirname(savedPath), { recursive: true });
-      await fs.writeFile(savedPath, html, "utf-8");
+      await writeNewFile(savedPath, html);
 
       const result = {
         savedPath,
@@ -188,7 +212,8 @@ export function createServer(): McpServer {
       title: "Save Dataset as CSV",
       description:
         "Persist the current dataset as a CSV file on the local disk. " +
-        "`path` may be absolute, or relative (resolved under ./saved).",
+        "`path` may be absolute, or relative (resolved under ./saved). " +
+        "Existing files are never overwritten.",
       inputSchema: {
         path: z.string().describe("Destination path. Relative paths go under ./saved."),
         rows: z.array(rowSchema),
@@ -200,21 +225,22 @@ export function createServer(): McpServer {
       },
     },
     async ({ path: dest, rows }): Promise<CallToolResult> => {
-      const withExt = dest.endsWith(".csv") ? dest : `${dest}.csv`;
-      const savedPath = path.isAbsolute(withExt)
-        ? withExt
-        : path.join(SAVE_BASE, withExt);
+      const savedPath = resolveSavePath(dest, ".csv");
 
-      // Minimal CSV with quoting for fields containing comma/quote/newline.
-      const esc = (v: string) => /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+      // Minimal CSV with quoting for fields containing comma/quote/newline,
+      // plus a leading apostrophe to neutralize CSV/formula injection when a
+      // field starts with =, +, -, @, tab or CR (evaluated by Excel/Sheets).
+      const esc = (v: string) => {
+        const guarded = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+        return /[",\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
+      };
       const lines = [
         "label,value,category",
         ...rows.map((r) => [esc(r.label), String(r.value), esc(r.category ?? "")].join(",")),
       ];
       const csv = lines.join("\n") + "\n";
 
-      await fs.mkdir(path.dirname(savedPath), { recursive: true });
-      await fs.writeFile(savedPath, csv, "utf-8");
+      await writeNewFile(savedPath, csv);
 
       const result = {
         savedPath,

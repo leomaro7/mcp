@@ -228,13 +228,17 @@ function buildHtmlSnapshot(): string {
   // Clone the dashboard and drop the interactive-only controls.
   const main = (document.querySelector(".dash") as HTMLElement).cloneNode(true) as HTMLElement;
   main.querySelectorAll(".controls, .save").forEach((el) => el.remove());
+  // Escape the (model/user-controlled) title before interpolating into raw
+  // markup, so a title like `</title><script>…` can't inject into the export.
+  const safeTitle = dataset.title.replace(/[&<>]/g, (c) =>
+    c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;");
   return `<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
-<title>${dataset.title}</title>
+<title>${safeTitle}</title>
 <style>${styles}</style>
 </head>
 <body>${main.outerHTML}</body>
